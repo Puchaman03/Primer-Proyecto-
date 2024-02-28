@@ -3,7 +3,11 @@ using System.Diagnostics;
 using System.Threading.Channels; // no se que es esto, simplemente aparecio 
 
 // Declaracion de las variables
-
+bool NoError = false; // el bool es paraa detectar si el promedio da error o no
+Console.ForegroundColor = ConsoleColor.DarkBlue;
+bool Repeticion = false;
+string Finalizador = "";
+int CantidadEstudiantes = 0;
 string Identificacion = "";// variable para la identificacion de la cedula
 bool encontrado = false;// variable para identificar que la cedula si fue entrada true, o si no false
 int op = 0;// variable para el operador del menu; no se asusten puse 3 para cuando este haciendo pruebas no tenga que poner 10 estudiantes, luego se cambia
@@ -13,7 +17,7 @@ int[] promedio = new int[10]; ;//arreglo de los promedios
 string[] Condicion = new string[10]; ;//arreglo de las condiciones de los estudiantes
 
 
-while (op < 7) // con este while hare funcionar el menu, hasta que el usuario ponga una numero = o > que 7;
+while (op <= 6) // con este while hare funcionar el menu, hasta que el usuario ponga una numero = o > que 7;
 {
     op = Menu(op);// llamo ala funcion Menu, y declaro que el valor de op dentro del while sera decido por la funcion
     switch (op)
@@ -35,48 +39,32 @@ while (op < 7) // con este while hare funcionar el menu, hasta que el usuario po
             break;
 
         case 2://incluir estudiantes, esta parte la tiene que hacer otro compañero pero la tenia que hacer para ver si mi parte funciona
-            Console.ForegroundColor = ConsoleColor.DarkBlue;
-            for (int i = 0; i < 10; i++)
+
+            do
             {
-                Console.WriteLine($"Ponga la cedula del estudiante {i + 1}: ");
-                Cedulas[i] = Console.ReadLine();
-                Console.WriteLine("Ponga el nombre del estudiante: ");
-                Nombres[i] = Console.ReadLine();
-                Console.WriteLine("Ponga el Promedio del estudiante: ");
-                try
+                Incluir_Estudiantes(ref CantidadEstudiantes, Cedulas, Nombres, promedio,Condicion,NoError);
+
+                Console.WriteLine("¿ Desea continuar agregar mas estudiantes ?(s/n): ");
+                Finalizador = Console.ReadLine();
+
+                if (Finalizador.ToLower() == "s")
                 {
-                    promedio[i] = int.Parse(Console.ReadLine());
-                    while (promedio[i] > 100 || promedio[i] < 0)
-                    {
-                        Console.WriteLine("El promedio no puede ser menor a 0 o mayor a 100, Digite el promedio del estudiante");
-                        promedio[i] = int.Parse(Console.ReadLine());
+                    Repeticion = true; 
 
-                    }
-
-                }
-                catch (FormatException)
-                {
-                    Console.WriteLine(" Error, digite nuevamente el promedio del estudiante");
-
-
-                }
-
-                if (promedio[i] >= 70)
-                {
-                    Condicion[i] = "Aprobado";
                 }
                 else
                 {
-                    Condicion[i] = "Reprobado";
+                    Repeticion= false;
                 }
-                Console.WriteLine();
-
-            }
+                
+            } while (Repeticion);
+            
+            
 
             break;
 
         case 3:// consultar Estudiantes
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < CantidadEstudiantes; i++)
             {
                 Console.WriteLine($"Cedula: {Cedulas[i]}");
                 Console.WriteLine($"Nombre: {Nombres[i]}");
@@ -90,7 +78,7 @@ while (op < 7) // con este while hare funcionar el menu, hasta que el usuario po
             Console.ForegroundColor = ConsoleColor.DarkRed;//Estetico
             Console.WriteLine(" Digite la cedula del estudiante que quiere modificar: ");
             Identificacion = Console.ReadLine();
-            for (int i = 0; i < Cedulas.Length; i++) // dentro del bucle hago que la variable identificacion repase el arreglo de cedulas 
+            for (int i = 0; i < CantidadEstudiantes; i++) // dentro del bucle hago que la variable identificacion repase el arreglo de cedulas 
             {
                 if (Identificacion.Equals(Cedulas[i]))// aqui hago que si la variable identificacion dectacta que si hay una copia dentro del arreglo de cedulas haga lo siguiente
                 {
@@ -101,21 +89,31 @@ while (op < 7) // con este while hare funcionar el menu, hasta que el usuario po
                     Console.WriteLine("Ponga el nombre del estudiante: ");
                     Nombres[i] = Console.ReadLine();
                     Console.WriteLine("Ponga el Promedio del estudiante: ");
-                    try
+                    NoError = false;
+                    do
                     {
-                        promedio[i] = int.Parse(Console.ReadLine());
-                        while (promedio[i] > 100 || promedio[i] < 0)
+                        try
                         {
-                            Console.WriteLine("El promedio no puede ser menor a 0 o mayor a 100, Digite el promedio del estudiante");
-                            promedio[i] = int.Parse(Console.ReadLine());
+                            while (NoError == false)
+                            {
+                                promedio[i] = int.Parse(Console.ReadLine());
 
+                                while (promedio[i] > 100 || promedio[i] < 0)
+                                {
+                                    Console.WriteLine("El promedio no puede ser menor a 0 o mayor a 100, Digite el promedio del estudiante");
+                                    promedio[i] = int.Parse(Console.ReadLine());
+
+                                }
+                                NoError = true;
+
+                            }
                         }
-                    }
-                    catch (FormatException)
-                    {
-                        Console.WriteLine(" Error, digite nuevamente el promedio del estudiante");
-                    }
-                    promedio[i] = int.Parse(Console.ReadLine());
+                        catch (FormatException)
+                        {
+                            Console.WriteLine(" Error, digite nuevamente el promedio del estudiante");
+                        }
+                    } while (!NoError);// mientras el bool NoError sea falso va seguier repitiendo la estrutura 
+
                     if (promedio[i] >= 70)
                     {
                         Condicion[i] = "Aprobado";
@@ -342,6 +340,11 @@ Porfavor astengase de poner numeros negativos o nulos
             op = 0;
 
         }
+        if (op > 7 )
+        {
+            Console.WriteLine(" Si desea salir seleccione la opcion 7 de salir ");
+            op = 0;
+        }
     }
     catch (FormatException)// por si el usurio pone algo que no sea numeros. el formatExceotion captura elementos que no sea del mismo tipo, por ejemplo op es init pero si se pone una letra cuando se solicita seria string por lo que el catch los dectecta 
     {
@@ -351,4 +354,52 @@ Porfavor astengase de poner numeros negativos o nulos
     }
 
     return op;
+}
+static void Incluir_Estudiantes(ref int CantidadEstudiantes, string[] Cedulas, string[] Nombres, int[] promedio, string[] Condicion,bool NoError)
+{
+    
+    Console.WriteLine($"Ponga la cedula del estudiante {CantidadEstudiantes + 1}: ");
+    Cedulas[CantidadEstudiantes] = Console.ReadLine();
+    Console.WriteLine("Ponga el nombre del estudiante: ");
+    Nombres[CantidadEstudiantes] = Console.ReadLine();
+    Console.WriteLine("Ponga el Promedio del estudiante: ");
+    do
+    {
+        try
+        {
+            while (NoError == false)
+            {
+                promedio[CantidadEstudiantes] = int.Parse(Console.ReadLine());
+
+                while (promedio[CantidadEstudiantes] > 100 || promedio[CantidadEstudiantes] < 0)
+                {
+                    Console.WriteLine("El promedio no puede ser menor a 0 o mayor a 100, Digite el promedio del estudiante");
+                    promedio[CantidadEstudiantes] = int.Parse(Console.ReadLine());
+
+                }
+                NoError = true;
+
+            }
+
+
+        }
+        catch (FormatException)
+        {
+            Console.WriteLine(" Error, digite nuevamente el promedio del estudiante");
+        }
+    } while (!NoError);// mientras el bool NoError sea falso va seguier repitiendo la estrutura 
+
+    if (promedio[CantidadEstudiantes] >= 70)
+    {
+        Condicion[CantidadEstudiantes] = "Aprobado";
+    }
+    else
+    {
+        Condicion[CantidadEstudiantes] = "Reprobado";
+    }
+    Console.WriteLine();
+
+
+    CantidadEstudiantes++;
+    
 }
